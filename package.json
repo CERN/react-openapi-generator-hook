@@ -1,0 +1,42 @@
+{
+  "name": "react-openapi-generator-hook",
+  "version": "0.0.1",
+  "main": "dist/react-openapi-hook.umd.js",
+  "module": "dist/react-openapi-hook.es.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "keywords": [
+    "OpenApi",
+    "React",
+    "Hook"
+  ],
+  "author": "Stefano Marzo",
+  "license": "MIT",
+  "description": "React hook to perform HTTP calls with OpenApi Generator models and handle responses efficiently",
+  "dependencies": {
+    "axios": "1.8.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.23.0",
+    "@types/node": "^22.13.13",
+    "@types/react": "^19.0.12",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.23.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-no-relative-import-paths": "^1.5.5",
+    "eslint-plugin-react": "^7.37.4",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.3"
+  }
+}
