@@ -1,18 +1,20 @@
 {
   "name": "react-openapi-generator-hook",
-  "version": "0.0.1",
+  "version": "0.0.13",
   "main": "dist/react-openapi-hook.umd.js",
   "module": "dist/react-openapi-hook.es.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "vite build",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "generate:configuration": "openapi-generator-cli generate -i openapi-specs.yaml -g typescript-axios --additional-properties=useSingleRequestParameter=true --skip-validate-spec -o ./generated"
   },
   "keywords": [
-    "OpenApi",
+    "OpenApi Generator",
     "React",
-    "Hook"
+    "Hook",
+    "useApi"
   ],
   "author": "Stefano Marzo",
   "license": "MIT",
@@ -23,6 +25,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.18.4",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.23.0",
     "@types/node": "^22.13.13",
@@ -38,5 +41,8 @@
     "eslint-plugin-react": "^7.37.4",
     "typescript": "^5.8.2",
     "vite": "^6.2.3"
+  },
+  "peerDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.18.4"
   }
 }

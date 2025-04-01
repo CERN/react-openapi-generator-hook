@@ -1,0 +1,4 @@
+.gitignore
+.npmignore
+configuration.ts
+git_push.sh

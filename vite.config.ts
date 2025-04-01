@@ -4,6 +4,13 @@ import path from 'path'
 
 export default defineConfig({
     plugins: [react()],
+    resolve: {
+        alias: {
+            'types': path.resolve(__dirname, './src/types'),
+            'context': path.resolve(__dirname, './src/context'),
+            'hook': path.resolve(__dirname, './src/hook')
+        }
+    },
     build: {
         lib: {
             entry: path.resolve(__dirname, 'index.ts'),

@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
-import { Configuration } from 'types/configuration'
 import { useOpenApiGenerator } from '../context/OpenApiContextProvider'
+import { Configuration } from '../../generated/configuration'
 
 export function useApi<
   ApiInstance,
-  MethodName extends keyof ApiInstance &(string | number | symbol)
+  MethodName extends keyof ApiInstance & (string | number | symbol)
 >(
   apiParams: {
     apiFactory: (
@@ -24,13 +24,13 @@ export function useApi<
         ? Args[0] // If Args[1] doesn't exist, set requestOptions to Args[0]
         : Args[1] // If Args[1] exists, set requestOptions to Args[1]
       : never
-    backendAPI?: string
   },
   options?: {
     manual?: boolean
-  }
+    configurationId?: string
+  },
 ) {
-  const { backendAPI, apiFactory, methodName, requestParameters, requestOptions } = apiParams
+  const { apiFactory, methodName, requestParameters, requestOptions } = apiParams
   type Method = ApiInstance[MethodName] extends (...args: infer Args) =>
     infer Return ? (...args: Args) => Return : never
   type Params = typeof requestParameters
@@ -40,11 +40,14 @@ export function useApi<
   const [error, setError] = useState<AxiosError | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const { configuration, baseUrl, axiosInstance } = useOpenApiGenerator(backendAPI)
+  const { openApiConfigurationMap, defaultConfigurationId } = useOpenApiGenerator()
+  const { axiosInstance, configuration, baseUrl } = openApiConfigurationMap[options?.configurationId ?? defaultConfigurationId]
+
   const apiInstance =
     useMemo(() => apiFactory(configuration, baseUrl, axiosInstance), [configuration, baseUrl, axiosInstance])
-  const memoisedRequestParams = useMemo(() => requestParameters, [])
-  const memoisedRequestOptions = useMemo(() => requestOptions, [])
+  const memoisedRequestParams = useMemo(() => requestParameters, [requestParameters])
+  const memoisedRequestOptions = useMemo(() => requestOptions, [requestOptions])
+
   const execute = useCallback(
     async (params?: Params, options?: Options): Promise<AxiosResponse<Response>> => {
       setLoading(true)
@@ -80,6 +83,5 @@ export function useApi<
       }
     }
   }, [memoisedRequestParams, execute, options, memoisedRequestOptions])
-
   return [{ data, error, loading }, execute] as const
 }

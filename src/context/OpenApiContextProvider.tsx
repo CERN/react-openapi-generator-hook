@@ -1,70 +1,25 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react'
-import axios, { AxiosInstance } from 'axios'
-import { Configuration } from '../types/configuration'
+import React, { createContext, useContext } from 'react'
+import { OpenApiProviderProps, OpenApiProviderState } from '../type/openApiConfigurationTypes'
 
-type OpenApiGeneratorConfiguration = {
-  configuration: Configuration
-  axiosInstance: AxiosInstance
-  baseUrl?: string
-}
+const OpenApiContext = createContext<OpenApiProviderState | undefined>(undefined)
 
-const OpenApiGeneratorConfigurationContext = createContext<OpenApiGeneratorConfiguration>({
-  configuration: new Configuration(),
-  axiosInstance: axios.create({
-    withCredentials: true,
-  }),
-})
-
-const OpenApiGeneratorConfigurationProvider = ({
-                                                 children,
-                                                 accessToken
-                                               }: {
-  readonly children: React.JSX.Element,
-  accessToken?: string
-}) => {
-  const [openApiConfiguration, setOpenApiConfiguration] = useState<Configuration>(new Configuration())
-  const openApiAxios: AxiosInstance = axios.create({ withCredentials: true })
-
-  const generateOpenApiConfiguration = (
-    conf: Configuration,
-    axiosInstance: AxiosInstance,
-    url?: string
-  ) => ({
-    configuration: conf,
-    baseUrl: url,
-    axiosInstance: axiosInstance,
-  })
-
-  const openApiGeneratorConfiguration = useMemo<OpenApiGeneratorConfiguration>(() => {
-    if (accessToken) {
-      return generateOpenApiConfiguration(openApiConfiguration, openApiAxios)
-    } else {
-      return generateOpenApiConfiguration(new Configuration(), openApiAxios)
-    }
-  }, [openApiConfiguration, openApiAxios, accessToken])
-
-  useEffect(() => {
-    if (accessToken) {
-      setOpenApiConfiguration(new Configuration({ accessToken }))
-    }
-  }, [accessToken])
+export const OpenApiProvider: React.FC<OpenApiProviderProps> = (
+  {
+    children, openApiConfigurationMap, defaultConfigurationId
+  }
+) => {
 
   return (
-    <OpenApiGeneratorConfigurationContext.Provider value={openApiGeneratorConfiguration}>
-      {openApiConfiguration.accessToken && children}
-    </OpenApiGeneratorConfigurationContext.Provider>
+    <OpenApiContext.Provider value={{ openApiConfigurationMap: openApiConfigurationMap, defaultConfigurationId }}>
+      {children}
+    </OpenApiContext.Provider>
   )
 }
 
-const useOpenApiGenerator = (api?: string): OpenApiGeneratorConfiguration => {
-  const context = useContext<OpenApiGeneratorConfiguration>(OpenApiGeneratorConfigurationContext)
-
-  // You can add more sophisticated backend API configuration logic here if needed
+export const useOpenApiGenerator = (): OpenApiProviderState => {
+  const context = useContext(OpenApiContext)
+  if (context === undefined) {
+    throw new Error('useApi and useOpenApiGenerator must be used within an OpenApiProvider')
+  }
   return context
-}
-
-export {
-  OpenApiGeneratorConfigurationProvider,
-  useOpenApiGenerator,
-  OpenApiGeneratorConfigurationContext
 }
