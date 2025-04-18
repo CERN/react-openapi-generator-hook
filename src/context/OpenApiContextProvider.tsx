@@ -1,16 +1,20 @@
-import React, { createContext, useContext } from 'react'
+import React, { createContext, useContext, useMemo } from 'react'
 import { OpenApiProviderProps, OpenApiProviderState } from '../type/openApiConfigurationTypes'
 
 const OpenApiContext = createContext<OpenApiProviderState | undefined>(undefined)
 
-export const OpenApiProvider: React.FC<OpenApiProviderProps> = (
-  {
-    children, openApiConfigurationMap, defaultConfigurationId
-  }
-) => {
+export const OpenApiProvider: React.FC<OpenApiProviderProps> = ({
+  children,
+  openApiConfigurationMap,
+  defaultConfigurationId,
+}) => {
+  const contextValue = useMemo(() => ({
+    openApiConfigurationMap,
+    defaultConfigurationId,
+  }), [openApiConfigurationMap, defaultConfigurationId])
 
   return (
-    <OpenApiContext.Provider value={{ openApiConfigurationMap: openApiConfigurationMap, defaultConfigurationId }}>
+    <OpenApiContext.Provider value={contextValue}>
       {children}
     </OpenApiContext.Provider>
   )

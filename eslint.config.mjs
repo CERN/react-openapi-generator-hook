@@ -1,5 +1,4 @@
 import react from 'eslint-plugin-react'
-import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths'
 import tsParser from '@typescript-eslint/parser'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -33,7 +32,6 @@ export default [{
 ), {
   plugins: {
     react,
-    'no-relative-import-paths': noRelativeImportPaths,
   },
 
   languageOptions: {
@@ -134,11 +132,5 @@ export default [{
     }],
 
     'comma-spacing': 'off',
-
-    'no-relative-import-paths/no-relative-import-paths': ['error', {
-      allowSameFolder: true,
-      rootDir: 'src',
-      prefix: '',
-    }],
   },
 }]

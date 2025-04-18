@@ -5,7 +5,7 @@ import { Configuration } from '../../generated/configuration'
 
 export function useApi<
   ApiInstance,
-  MethodName extends keyof ApiInstance & (string | number | symbol)
+  MethodName extends keyof ApiInstance &(string | number | symbol)
 >(
   apiParams: {
     apiFactory: (
@@ -31,22 +31,35 @@ export function useApi<
   },
 ) {
   const { apiFactory, methodName, requestParameters, requestOptions } = apiParams
+
   type Method = ApiInstance[MethodName] extends (...args: infer Args) =>
     infer Return ? (...args: Args) => Return : never
   type Params = typeof requestParameters
   type Options = typeof requestOptions
   type Response = Awaited<ReturnType<Method>> extends { data: infer D } ? D : never
+
   const [data, setData] = useState<Response | null>(null)
   const [error, setError] = useState<AxiosError | null>(null)
   const [loading, setLoading] = useState(false)
 
   const { openApiConfigurationMap, defaultConfigurationId } = useOpenApiGenerator()
-  const { axiosInstance, configuration, baseUrl } = openApiConfigurationMap[options?.configurationId ?? defaultConfigurationId]
+  const { axiosInstance, configuration, baseUrl } = openApiConfigurationMap[
+    options?.configurationId ?? defaultConfigurationId]
 
-  const apiInstance =
-    useMemo(() => apiFactory(configuration, baseUrl, axiosInstance), [configuration, baseUrl, axiosInstance])
-  const memoisedRequestParams = useMemo(() => requestParameters, [requestParameters])
-  const memoisedRequestOptions = useMemo(() => requestOptions, [requestOptions])
+  const apiInstance = useMemo(
+    () => apiFactory(configuration, baseUrl, axiosInstance),
+    [configuration, baseUrl, axiosInstance]
+  )
+
+  const memoisedRequestParams = useMemo(
+    () => requestParameters,
+    [requestParameters]
+  )
+
+  const memoisedRequestOptions = useMemo(
+    () => requestOptions,
+    [requestOptions]
+  )
 
   const execute = useCallback(
     async (params?: Params, options?: Options): Promise<AxiosResponse<Response>> => {
@@ -54,14 +67,10 @@ export function useApi<
       setError(null)
       try {
         const method = apiInstance[methodName] as Method
-        let response
-        if (params !== undefined) {
-          response = await method(
-            params ?? memoisedRequestParams,
-            options ?? memoisedRequestOptions) as AxiosResponse<Response>
-        } else {
-          response = await method(options ?? memoisedRequestOptions) as AxiosResponse<Response>
-        }
+        const requestOptions = options ?? memoisedRequestOptions
+        const response = await (params !== undefined
+          ? method(params ?? memoisedRequestParams, requestOptions)
+          : method(requestOptions)) as AxiosResponse<Response>
         setData(response?.data)
         return response
       } catch (err) {
