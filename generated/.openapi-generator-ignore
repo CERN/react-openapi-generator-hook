@@ -1,0 +1,6 @@
+# OpenAPI Generator Ignore
+## Avoid generating every file except configuration.ts
+api.ts
+base.ts
+common.ts
+index.ts

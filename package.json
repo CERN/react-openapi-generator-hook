@@ -1,0 +1,49 @@
+{
+  "name": "react-openapi-generator-hook",
+  "version": "0.0.16",
+  "main": "dist/react-openapi-hook.umd.js",
+  "module": "dist/react-openapi-hook.es.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "generate:configuration": "openapi-generator-cli generate -i openapi-specs.yaml -g typescript-axios --additional-properties=useSingleRequestParameter=true --skip-validate-spec -o ./generated"
+  },
+  "keywords": [
+    "OpenApi Generator",
+    "React",
+    "Hook",
+    "useApi"
+  ],
+  "author": "Stefano Marzo",
+  "license": "MIT",
+  "description": "React hook to perform HTTP calls with OpenApi Generator models and handle responses efficiently",
+  "dependencies": {
+    "axios": "1.8.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.19.1",
+    "@types/node": "^22.13.13",
+    "@types/react": "^19.0.12",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.23.0",
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.23.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.4",
+    "typescript": "^5.8.2",
+    "vite": "6.2.6",
+    "vitest": "^3.1.1",
+    "@testing-library/react": "^16.3.0"
+  },
+  "peerDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.18.4"
+  }
+}
