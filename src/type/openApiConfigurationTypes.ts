@@ -11,10 +11,10 @@ export interface OpenApiConfigurationType {
 export interface OpenApiProviderProps {
   readonly children: ReactNode
   readonly openApiConfigurationMap: Record<string, OpenApiConfigurationType>
-  readonly defaultConfigurationId: string
+  readonly defaultConfigurationId?: string
 }
 
 export interface OpenApiProviderState {
   readonly openApiConfigurationMap: Record<string, OpenApiConfigurationType>
-  readonly defaultConfigurationId: string
+  readonly defaultConfigurationId?: string
 }

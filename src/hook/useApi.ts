@@ -5,7 +5,7 @@ import { Configuration } from '../../generated/configuration'
 
 export function useApi<
   ApiInstance,
-  MethodName extends keyof ApiInstance &(string | number | symbol)
+  MethodName extends keyof ApiInstance & (string | number | symbol)
 >(
   apiParams: {
     apiFactory: (
@@ -44,7 +44,8 @@ export function useApi<
 
   const { openApiConfigurationMap, defaultConfigurationId } = useOpenApiGenerator()
   const { axiosInstance, configuration, baseUrl } = openApiConfigurationMap[
-    options?.configurationId ?? defaultConfigurationId]
+    options?.configurationId ?? defaultConfigurationId ?? Object.keys(openApiConfigurationMap)[0]
+    ]
 
   const apiInstance = useMemo(
     () => apiFactory(configuration, baseUrl, axiosInstance),
