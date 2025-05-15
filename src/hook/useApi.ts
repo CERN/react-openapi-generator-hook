@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 CERN
+//
+// SPDX-License-Identifier: MIT
+
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
 import { useOpenApiGenerator } from '../context/OpenApiContextProvider'

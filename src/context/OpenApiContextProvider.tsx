@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 CERN
+//
+// SPDX-License-Identifier: MIT
+
 import React, { createContext, useContext, useMemo } from 'react'
 import { OpenApiProviderProps, OpenApiProviderState } from '../type/openApiConfigurationTypes'
 

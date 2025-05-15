@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 CERN
+#
+# SPDX-License-Identifier: MIT
+
 openapi: 3.0.0
 info:
   title: API Generation
