@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 CERN
+//
+// SPDX-License-Identifier: MIT
+
 import react from 'eslint-plugin-react'
 import tsParser from '@typescript-eslint/parser'
 import path from 'node:path'

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 CERN
+//
+// SPDX-License-Identifier: MIT
+
 import { AxiosInstance } from 'axios'
 import { Configuration } from '../../generated/configuration'
 import { ReactNode } from 'react'
