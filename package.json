@@ -1,6 +1,6 @@
 {
   "name": "react-openapi-generator-hook",
-  "version": "0.0.16",
+  "version": "0.1.0",
   "main": "dist/react-openapi-hook.umd.js",
   "module": "dist/react-openapi-hook.es.js",
   "types": "dist/index.d.ts",
@@ -39,7 +39,7 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.4",
     "typescript": "^5.8.2",
-    "vite": "6.2.6",
+    "vite": "6.3.4",
     "vitest": "^3.1.1",
     "@testing-library/react": "^16.3.0"
   },
