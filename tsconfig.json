@@ -17,12 +17,17 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "baseUrl": "src"
+    "baseUrl": "src",
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
   "include": [
     "src",
     "./eslint.config.mjs",
-    "index.ts"
+    "index.ts",
+    "index.test.ts",
+    "test",
+    "node_modules/vitest/globals.d.ts",
+    "vite.config.ts"
   ],
   "references": [
     {

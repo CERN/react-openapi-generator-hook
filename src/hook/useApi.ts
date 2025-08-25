@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
 import { useOpenApiGenerator } from '../context/OpenApiContextProvider'
-import { Configuration } from '../../generated/configuration'
+import { Configuration } from '../../open-api-configuration/configuration'
 
 // helper: merges request options and ensures an AbortSignal is present
 function mergeRequestOptions<Options extends Record<string, unknown>>(

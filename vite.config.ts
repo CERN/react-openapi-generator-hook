@@ -49,7 +49,7 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     setupFiles: './test/tests-setup.ts',
     exclude: [...configDefaults.exclude, 'generated', 'src/types', '**/index.ts', 'src/test-utils'],
     pool: 'threads',
@@ -63,9 +63,9 @@ export default defineConfig({
       provider: 'v8',
       exclude: [
         ...coverageConfigDefaults.exclude,
-        'generated',
+        'open-api-configuration', // generated files
       ],
-      reporter: ['lcov', 'text', 'html'],
+      reporter: ['html'],
       thresholds: {
         statements: 80,
         branches: 80,
