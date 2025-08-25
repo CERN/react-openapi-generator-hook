@@ -9,6 +9,11 @@ import { createOpenApiTestWrapper } from '../../test/test-wrappers'
 import { type AxiosError } from 'axios'
 import { Configuration } from '../../open-api-configuration/configuration'
 
+type MethodName = 'fetchData'
+type Data = { ok: boolean }
+type ApiMethod = (params?: unknown, options?: unknown) => Promise<{ data: Data }>
+type MockApiType = Record<MethodName, ApiMethod>
+
 describe('useApi', () => {
   const apiFactory = vi.fn()
   const methodName = 'testMethod'
@@ -25,7 +30,7 @@ describe('useApi', () => {
         requestParameters,
         requestOptions,
       }),
-      { wrapper }
+    { wrapper }
     )
 
     const [state] = result.current
@@ -46,7 +51,7 @@ describe('useApi', () => {
         requestParameters,
         requestOptions,
       }),
-      { wrapper }
+    { wrapper }
     )
 
     const [, execute] = result.current
@@ -70,16 +75,17 @@ describe('useApi', () => {
     const method = vi.fn()
     apiFactory.mockReturnValue({ [methodName]: method })
 
-    renderHook(() =>
-      useApi(
-        {
-          apiFactory,
-          methodName,
-          requestParameters,
-          requestOptions,
-        },
-        { manual: true }
-      ),
+    renderHook(
+      () =>
+        useApi(
+          {
+            apiFactory,
+            methodName,
+            requestParameters,
+            requestOptions,
+          },
+          { manual: true }
+        ),
       { wrapper }
     )
     expect(method).not.toHaveBeenCalled()
@@ -103,17 +109,17 @@ describe('useApi', () => {
 
   it('sets error and rethrows on non-cancel error', async () => {
     // Fake API instance with a method that rejects
-    const methodName = 'getThing' as const
+    const methodName = 'fetchData' as const
     const apiFactory = vi.fn(() => ({
       [methodName]: vi.fn().mockRejectedValue(Object.assign(new Error('Boom'), {
-        isAxiosError: true
-      } satisfies Partial<AxiosError>))
+        isAxiosError: true,
+      } satisfies Partial<AxiosError>)),
     }))
     const wrapper = createOpenApiTestWrapper()
 
     const { result } = renderHook(() =>
-        useApi({ apiFactory, methodName }, { manual: true }),
-      { wrapper }
+      useApi({ apiFactory, methodName }, { manual: true }),
+    { wrapper }
     )
 
     const [, execute] = result.current
@@ -130,15 +136,17 @@ describe('useApi', () => {
   })
 
   it('uses the secondary configuration when specified', async () => {
-    const methodName = 'getSomething' as const
-    const wrapper = createOpenApiTestWrapper({configurationId: undefined, defaultConfigurationId: 'secondaryConfiguration'})
+    const methodName = 'fetchData' as const
+    const wrapper =
+      createOpenApiTestWrapper({ configurationId: undefined, defaultConfigurationId: 'secondaryConfiguration' })
 
     const method = vi.fn().mockResolvedValue({ data: { ok: true } })
-    const apiFactory = vi.fn((cfg?: Configuration, basePath?: string, axiosInstance?: any) => {
+    const apiFactory = vi.fn((_cfg?: Configuration, basePath?: string, _axiosInstance?: unknown) => {
       expect(basePath).toBe('https://secondary.example')
-      return { [methodName]: method } as any
+      return { 'fetchData': method } satisfies MockApiType
     })
-    renderHook(() =>
+    renderHook(
+      () =>
         useApi(
           {
             apiFactory,
@@ -152,17 +160,18 @@ describe('useApi', () => {
     )
   })
 
-  it('uses the first configuration in the map when no configurationId and no defaultConfigurationId specified', async () => {
-    const methodName = 'getSomething' as const
-    const wrapper = createOpenApiTestWrapper({configurationId: undefined, defaultConfigurationId: undefined})
+  it('uses the first configuration in the map when no configurationId and no defaultConfigurationId specified',
+    async () => {
+      const methodName = 'fetchData' as const
+      const wrapper = createOpenApiTestWrapper({ configurationId: undefined, defaultConfigurationId: undefined })
 
-    const method = vi.fn().mockResolvedValue({ data: { ok: true } })
-    const apiFactory = vi.fn((cfg?: Configuration, basePath?: string, axiosInstance?: any) => {
-      expect(basePath).toBe('https://primary.example')
-      return { [methodName]: method } as any
-    })
-    renderHook(() =>
-        useApi(
+      const method = vi.fn().mockResolvedValue({ data: { ok: true } })
+      const apiFactory = vi.fn((_cfg?: Configuration, basePath?: string, _axiosInstance?: unknown) => {
+        expect(basePath).toBe('https://primary.example')
+        return { 'fetchData': method } satisfies MockApiType
+      })
+      renderHook(
+        () => useApi(
           {
             apiFactory,
             methodName,
@@ -171,8 +180,7 @@ describe('useApi', () => {
           },
           { manual: true }
         ),
-      { wrapper }
-    )
-  })
-
+        { wrapper }
+      )
+    })
 })

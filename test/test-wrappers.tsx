@@ -36,8 +36,8 @@ export function createOpenApiTestWrapper(opts?: {
 
   return ({ children }: PropsWithChildren) => (
     <OpenApiProvider
-      openApiConfigurationMap={openApiConfigurationMap}
       defaultConfigurationId={defaultConfigurationId}
+      openApiConfigurationMap={openApiConfigurationMap}
     >
       {children}
     </OpenApiProvider>

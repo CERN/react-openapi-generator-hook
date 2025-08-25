@@ -5,8 +5,9 @@
 import { useApi } from '../src/hook/useApi'
 import { DefaultApi } from '../open-api-configuration/api'
 import { createOpenApiTestWrapper } from './test-wrappers'
-import { act, render, screen, fireEvent } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { describe } from 'vitest'
+import { CanceledError } from 'axios'
 
 export function makePendingMethodRejectOnAbort() {
   return vi.fn((...args: any[]) => {
@@ -14,9 +15,9 @@ export function makePendingMethodRejectOnAbort() {
     const signal: AbortSignal | undefined = maybeOpts?.signal
 
     return new Promise((_resolve, reject) => {
-      const cancelErr = Object.assign(new Error('canceled'), {
+      const cancelErr = Object.assign(new CanceledError('canceled'), {
         code: 'ERR_CANCELED',
-        name: 'AbortError'
+        name: 'AbortError',
       })
       const onAbort = () => reject(cancelErr)
 
@@ -28,20 +29,21 @@ export function makePendingMethodRejectOnAbort() {
 }
 
 type Props = {
-  apiFactory: any
-  methodName: 'fetchData'
-  manual?: boolean
-  requestParameters?: any
-  requestOptions?: any
+
+  readonly apiFactory: any
+  readonly methodName: 'fetchData'
+  readonly manual?: boolean
+  readonly requestParameters?: any
+  readonly requestOptions?: any
 }
 
-export function TestConsumer({
-                               apiFactory,
-                               methodName,
-                               manual = true,
-                               requestParameters,
-                               requestOptions
-                             }: Props) {
+export const TestConsumer = ({
+  apiFactory,
+  methodName,
+  manual = true,
+  requestParameters,
+  requestOptions,
+}: Props) => {
   const [{ data, error, loading }, execute, abort] = useApi<DefaultApi, 'fetchData'>(
     { apiFactory, methodName, requestParameters, requestOptions },
     { manual }
@@ -52,8 +54,11 @@ export function TestConsumer({
       {error && <div data-testid="error">{error.message}</div>}
       {data && <pre data-testid="data">{JSON.stringify(data)}</pre>}
 
-      <button data-testid="start" onClick={() => execute().catch(() => {
-      })}>
+      <button
+        data-testid="start"
+        onClick={() => execute().catch(() => {
+        })}
+      >
         Start
       </button>
       <button data-testid="cancel" onClick={() => abort()}>
@@ -124,7 +129,7 @@ describe('Run component integration tests', () => {
     const method = vi.fn().mockResolvedValue({ data: { ok: 123 } })
     const apiFactory = vi.fn(() => ({ [methodName]: method }))
     render(
-      <TestConsumer apiFactory={apiFactory} methodName={methodName} manual={false} />,
+      <TestConsumer apiFactory={apiFactory} manual={false} methodName={methodName} />,
       { wrapper }
     )
     // initial effect should flip loading true

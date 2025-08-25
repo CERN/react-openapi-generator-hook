@@ -8,3 +8,4 @@ node_modules
 stats.html
 .DS_Store
 coverage
+generated

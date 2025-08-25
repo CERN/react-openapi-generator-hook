@@ -64,6 +64,7 @@ export default defineConfig({
       exclude: [
         ...coverageConfigDefaults.exclude,
         'open-api-configuration', // generated files
+        'generated',
       ],
       reporter: ['html'],
       thresholds: {

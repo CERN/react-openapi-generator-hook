@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
+import { AxiosError, AxiosInstance, AxiosResponse, CanceledError, isAxiosError } from 'axios'
 import { useOpenApiGenerator } from '../context/OpenApiContextProvider'
 import { Configuration } from '../../open-api-configuration/configuration'
 
@@ -15,15 +15,19 @@ function mergeRequestOptions<Options extends Record<string, unknown>>(
 ): Options & { signal: AbortSignal } {
   const merged = { ...(base ?? {}), ...(run ?? {}) } as Options
   const signal =
-    (run as any)?.signal ??
-    (base as any)?.signal ??
+    (run as Options)?.signal ??
+    (base as Options)?.signal ??
     fallback
   return { ...merged, signal } as Options & { signal: AbortSignal }
 }
 
+function isAxiosCancel(e: unknown): boolean {
+  return e instanceof CanceledError || (isAxiosError(e) && e.code === 'ERR_CANCELED')
+}
+
 export function useApi<
   ApiInstance,
-  MethodName extends keyof ApiInstance & (string | number | symbol)
+  MethodName extends keyof ApiInstance &(string | number | symbol)
 >(
   apiParams: {
     apiFactory: (
@@ -69,10 +73,9 @@ export function useApi<
   }, [])
 
   const { openApiConfigurationMap, defaultConfigurationId } = useOpenApiGenerator()
-  const { axiosInstance, configuration, baseUrl } = openApiConfigurationMap
-    [
-      options?.configurationId ?? defaultConfigurationId ?? Object.keys(openApiConfigurationMap)[0]
-    ]
+  const { axiosInstance, configuration, baseUrl } =
+    openApiConfigurationMap[options?.configurationId
+    ?? defaultConfigurationId ?? Object.keys(openApiConfigurationMap)[0]]
 
   const apiInstance = useMemo(
     () => apiFactory(configuration, baseUrl, axiosInstance),
@@ -91,7 +94,6 @@ export function useApi<
 
   const execute = useCallback(
     async (params?: Params, options?: Options): Promise<AxiosResponse<Response>> => {
-
       abort()
       abortRef.current = new AbortController()
       const myReqId = ++reqIdRef.current
@@ -113,13 +115,15 @@ export function useApi<
           setData(response?.data)
         }
         return response
-
-      } catch (err) {
-        if ((err as any)?.code === 'ERR_CANCELED' || (err as any)?.name === 'AbortError') {
-          throw err
+      } catch (error) {
+        if (isAxiosCancel(error)) throw error
+        if (isAxiosError(error)) {
+          setError(error)
+        } else {
+          // not an Axios error: map to a generic AxiosError
+          setError(new AxiosError('Unexpected useApi error'))
         }
-        setError(err as AxiosError)
-        throw err
+        throw error
       } finally {
         if (reqIdRef.current === myReqId) {
           setLoading(false)
