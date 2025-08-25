@@ -17,6 +17,10 @@ export const OpenApiProvider: React.FC<OpenApiProviderProps> = ({
     defaultConfigurationId,
   }), [openApiConfigurationMap, defaultConfigurationId])
 
+  if (!contextValue || Object.keys(openApiConfigurationMap).length === 0) {
+    throw new Error('OpenApiProvider must have at least one open api configuration')
+  }
+
   return (
     <OpenApiContext.Provider value={contextValue}>
       {children}

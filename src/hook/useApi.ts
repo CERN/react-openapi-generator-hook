@@ -2,14 +2,32 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { AxiosError, AxiosInstance, AxiosResponse, CanceledError, isAxiosError } from 'axios'
 import { useOpenApiGenerator } from '../context/OpenApiContextProvider'
-import { Configuration } from '../../generated/configuration'
+import { Configuration } from '../../open-api-configuration/configuration'
+
+// helper: merges request options and ensures an AbortSignal is present
+function mergeRequestOptions<Options extends Record<string, unknown>>(
+  base: Options | undefined,
+  run: Options | undefined,
+  fallback: AbortSignal
+): Options & { signal: AbortSignal } {
+  const merged = { ...(base ?? {}), ...(run ?? {}) } as Options
+  const signal =
+    (run as Options)?.signal ??
+    (base as Options)?.signal ??
+    fallback
+  return { ...merged, signal } as Options & { signal: AbortSignal }
+}
+
+function isAxiosCancel(e: unknown): boolean {
+  return e instanceof CanceledError || (isAxiosError(e) && e.code === 'ERR_CANCELED')
+}
 
 export function useApi<
   ApiInstance,
-  MethodName extends keyof ApiInstance & (string | number | symbol)
+  MethodName extends keyof ApiInstance &(string | number | symbol)
 >(
   apiParams: {
     apiFactory: (
@@ -32,7 +50,7 @@ export function useApi<
   options?: {
     manual?: boolean
     configurationId?: string
-  },
+  }
 ) {
   const { apiFactory, methodName, requestParameters, requestOptions } = apiParams
 
@@ -46,10 +64,18 @@ export function useApi<
   const [error, setError] = useState<AxiosError | null>(null)
   const [loading, setLoading] = useState(false)
 
+  const abortRef = useRef<AbortController | null>(null)
+  const reqIdRef = useRef(0)
+
+  const abort = useCallback(() => {
+    abortRef.current?.abort()
+    abortRef.current = null
+  }, [])
+
   const { openApiConfigurationMap, defaultConfigurationId } = useOpenApiGenerator()
-  const { axiosInstance, configuration, baseUrl } = openApiConfigurationMap[
-    options?.configurationId ?? defaultConfigurationId ?? Object.keys(openApiConfigurationMap)[0]
-    ]
+  const { axiosInstance, configuration, baseUrl } =
+    openApiConfigurationMap[options?.configurationId
+    ?? defaultConfigurationId ?? Object.keys(openApiConfigurationMap)[0]]
 
   const apiInstance = useMemo(
     () => apiFactory(configuration, baseUrl, axiosInstance),
@@ -68,34 +94,63 @@ export function useApi<
 
   const execute = useCallback(
     async (params?: Params, options?: Options): Promise<AxiosResponse<Response>> => {
+      abort()
+      abortRef.current = new AbortController()
+      const myReqId = ++reqIdRef.current
+
       setLoading(true)
       setError(null)
       try {
         const method = apiInstance[methodName] as Method
-        const requestOptions = options ?? memoisedRequestOptions
+        const mergedOptions = mergeRequestOptions<Options & { signal: AbortSignal }>(
+          memoisedRequestOptions as Options & { signal: AbortSignal } | undefined,
+          options as Options & { signal: AbortSignal } | undefined,
+          abortRef.current.signal
+        )
         const response = await (params !== undefined
-          ? method(params ?? memoisedRequestParams, requestOptions)
-          : method(requestOptions)) as AxiosResponse<Response>
-        setData(response?.data)
+          ? method(params, mergedOptions)
+          : method(mergedOptions)) as AxiosResponse<Response>
+
+        if (reqIdRef.current === myReqId) {
+          setData(response?.data)
+        }
         return response
-      } catch (err) {
-        setError(err as AxiosError)
-        throw err
+      } catch (error) {
+        if (isAxiosCancel(error)) throw error
+        if (isAxiosError(error)) {
+          setError(error)
+        } else {
+          // not an Axios error: map to a generic AxiosError
+          setError(new AxiosError('Unexpected useApi error'))
+        }
+        throw error
       } finally {
-        setLoading(false)
+        if (reqIdRef.current === myReqId) {
+          setLoading(false)
+        }
       }
     },
-    [apiInstance, methodName, memoisedRequestParams, memoisedRequestOptions]
+    [apiInstance, methodName, memoisedRequestParams, memoisedRequestOptions, abort]
   )
 
+  /**
+   * Execute request on component mount if option.manual !== true
+   */
   useEffect(() => {
     if (!options?.manual) {
-      if (memoisedRequestParams) {
-        execute(memoisedRequestParams, memoisedRequestOptions).then(_ => {})
-      } else {
-        execute(undefined, memoisedRequestOptions).then(_ => {})
-      }
+      execute(memoisedRequestParams, memoisedRequestOptions).catch(() => {
+        // Intentionally discarding errors for the auto-execution case
+        // because execute already sets the error state inside the hook
+      })
     }
-  }, [memoisedRequestParams, execute, options, memoisedRequestOptions])
-  return [{ data, error, loading }, execute] as const
+  }, [memoisedRequestParams, memoisedRequestOptions, options?.manual, execute])
+
+  /**
+   * abort if the api instance (or method) identity changes while a request is in flight
+   */
+  useEffect(() => {
+    return () => abort()
+  }, [configuration, baseUrl, axiosInstance, options?.configurationId, apiInstance, methodName])
+
+  return [{ data, error, loading }, execute, abort] as const
 }

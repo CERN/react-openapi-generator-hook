@@ -6,9 +6,22 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { configDefaults, coverageConfigDefaults } from 'vitest/config'
+import visualizer from 'rollup-plugin-visualizer'
+import pkg from './package.json'
+
+const peerDependencies = Object.keys(pkg.peerDependencies || {})
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    visualizer({
+      filename: 'stats.html',
+      template: 'treemap',
+      gzipSize: true,
+      brotliSize: true,
+      open: true,
+    })
+  ],
   resolve: {
     alias: {
       'types': path.resolve(__dirname, './src/types'),
@@ -23,18 +36,20 @@ export default defineConfig({
       fileName: (format) => `react-openapi-hook.${format}.js`
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      external: id => /^react($|\/)/.test(id) || /^react-dom($|\/)/.test(id) || peerDependencies.includes(id),
       output: {
         globals: {
           react: 'React',
-          'react-dom': 'ReactDOM'
-        }
+          'react-dom': 'ReactDOM',
+          'react/jsx-runtime': 'ReactJSXRuntime',
+          'react/jsx-dev-runtime': 'ReactJSXDevRuntime',
+        },
       }
     }
   },
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     setupFiles: './test/tests-setup.ts',
     exclude: [...configDefaults.exclude, 'generated', 'src/types', '**/index.ts', 'src/test-utils'],
     pool: 'threads',
@@ -48,9 +63,10 @@ export default defineConfig({
       provider: 'v8',
       exclude: [
         ...coverageConfigDefaults.exclude,
+        'open-api-configuration', // generated files
         'generated',
       ],
-      reporter: ['lcov', 'text', 'html'],
+      reporter: ['html'],
       thresholds: {
         statements: 80,
         branches: 80,

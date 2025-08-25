@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { AxiosInstance } from 'axios'
-import { Configuration } from '../../generated/configuration'
+import { Configuration } from '../../open-api-configuration/configuration'
 import { ReactNode } from 'react'
 
 export interface OpenApiConfigurationType {
