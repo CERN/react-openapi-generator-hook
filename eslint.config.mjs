@@ -2,6 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+import storybook from "eslint-plugin-storybook"
+
 import react from 'eslint-plugin-react'
 import tsParser from '@typescript-eslint/parser'
 import path from 'node:path'
@@ -137,4 +140,4 @@ export default [{
 
     'comma-spacing': 'off',
   },
-}]
+}, ...storybook.configs["flat/recommended"]];

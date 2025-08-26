@@ -9,3 +9,6 @@ stats.html
 .DS_Store
 coverage
 generated
+
+*storybook.log
+storybook-static
