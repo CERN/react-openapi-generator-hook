@@ -10,6 +10,10 @@ type RequestArgs = {
 type ServerMap = {
     [key: string]: { url: string; description: string }[]
 }
+export interface FetchData200Response {
+  'content': string;
+  'license': string;
+}
 
 const operationServerMap: ServerMap = {}
 
@@ -105,7 +109,7 @@ export const DefaultApiFp = (configuration?: Configuration) => {
   return {
     async fetchData(
       options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>> {
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FetchData200Response>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.fetchData(options)
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
       const localVarOperationServerBasePath =
@@ -126,3 +130,12 @@ export class DefaultApi extends BaseAPI {
     return DefaultApiFp(this.configuration).fetchData(options).then(request => request(this.axios, this.basePath))
   }
 }
+
+export const DefaultApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+  const localVarFp = DefaultApiFp(configuration)
+  return {
+    fetchData(options?: RawAxiosRequestConfig): AxiosPromise<FetchData200Response> {
+      return localVarFp.fetchData(options).then((request) => request(axios, basePath));
+    },
+  };
+};

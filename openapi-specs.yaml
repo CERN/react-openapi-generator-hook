@@ -18,8 +18,16 @@ paths:
           content:
             application/json:
               schema:
-                type: string
-              example: "hello world"
+                type: object
+                required: [ content, license ]
+                properties:
+                  content:
+                    type: string
+                  license:
+                    type: string
+              example:
+                content: "I love useApi"
+                licence: "MIT ©CERN"
         '404':
           description: Not Found
           content:

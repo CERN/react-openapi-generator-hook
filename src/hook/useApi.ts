@@ -43,7 +43,7 @@ export function useApi<
   type Options = typeof requestOptions
   type Response = Awaited<ReturnType<Method>> extends { data: infer D } ? D : never
 
-  const [data, setData] = useState<Response | null>(null)
+  const [response, setResponse] = useState<AxiosResponse<Response> | null>(null)
   const [error, setError] = useState<AxiosError | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -85,13 +85,12 @@ export function useApi<
           : method(mergedOptions)) as AxiosResponse<Response>
 
         if (reqIdRef.current === myReqId) {
-          setData(response?.data)
+          setResponse(response)
         }
         return response
       } catch (error) {
-        if (isAxiosCancel(error)) throw error
-        if (isAxiosError(error)) {
-          setError(error)
+        if (isAxiosError(error) || isAxiosCancel(error)) {
+          setError(error as AxiosError)
         } else {
           // Not to lose actual error information
           console.error(error)
@@ -127,5 +126,7 @@ export function useApi<
     return () => abort()
   }, [options?.configurationId, apiInstance, methodName])
 
-  return [{ data, error, loading }, execute, abort] as const
+  const data = response?.data
+
+  return [{ response, data, error, loading }, execute, abort] as const
 }
