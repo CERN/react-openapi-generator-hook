@@ -16,20 +16,20 @@ export const serverErrorData = {
   content: 'Server error',
   license: '© 2025 CERN — MIT License'
 }
+export const placeholderData = {
+  content: 'No HTTP request sent',
+  license: '© 2025 CERN — MIT License'
+}
 
-export const responseTypes = ['Success', 'Not found', 'Client error', 'Server error'] as const
-export type ResponseType = typeof responseTypes[number]
-
-export const responseMap: Record<ResponseType, unknown> = {
-  Success: successData,
-  'Not found': notFoundData,
-  'Client error': clientErrorData,
-  'Server error': serverErrorData,
+export const abortData = {
+  content: 'HTTP request cancelled',
+  license: '© 2025 CERN — MIT License'
 }
 
 export const responseConfig = {
-  Success: { status: 200, body: successData },
-  'Not found': { status: 404, body: notFoundData },
-  'Client error': { status: 400, body: clientErrorData },
-  'Server error': { status: 500, body: serverErrorData },
+  '200': { status: 200, body: successData, color: 'success' },
+  '404': { status: 404, body: notFoundData, color: 'warning' },
+  '400': { status: 400, body: clientErrorData, color: 'error' },
+  '500': { status: 500, body: serverErrorData, color: 'error' },
 } as const
+

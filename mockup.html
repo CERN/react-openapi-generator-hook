@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>MUI‑like Mobile HTTP Demo (No Deps)</title>
+  <style>
+      /* === MUI-ish design tokens (approx) === */
+      :root{
+          --mui-font: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+          --mui-radius-xs: 6px;
+          --mui-radius-sm: 10px;
+          --mui-radius-md: 12px;
+          --mui-radius-lg: 16px;
+          --mui-shadow-1: 0 1px 2px rgba(0,0,0,0.06), 0 4px 10px rgba(0,0,0,0.06);
+
+          --mui-bg: #fafafa;
+          --mui-paper: #ffffff;
+          --mui-divider: #e0e0e0;
+
+          --mui-text-primary: #1a1c1e;
+          --mui-text-secondary: #5f6368;
+
+          --mui-primary: #1976d2;
+          --mui-primary-contrast: #fff;
+          --mui-primary-hover: #1565c0;
+
+          --mui-error: #d32f2f;
+          --mui-error-contrast: #fff;
+          --mui-error-hover: #b71c1c;
+
+          --mui-success: #2e7d32;
+          --mui-warning: #ed6c02;
+
+          --mui-input-bg: #fff;
+          --mui-input-bd: #c7ccd1;
+          --mui-input-focus: #1976d2;
+      }
+      @media (prefers-color-scheme: dark){
+          :root{
+              --mui-bg: #0f1113;
+              --mui-paper: #161a1d;
+              --mui-divider: #2a2e33;
+              --mui-text-primary: #e6e7e8;
+              --mui-text-secondary: #a9adb2;
+              --mui-input-bg: #121417;
+              --mui-input-bd: #3a4046;
+          }
+      }
+
+      /* === Base === */
+      html,body{height:100%}
+      body{
+          margin:0;
+          font-family:var(--mui-font);
+          color:var(--mui-text-primary);
+          background:linear-gradient(180deg,#f7f8fa,var(--mui-bg));
+          -webkit-font-smoothing:antialiased;
+          -moz-osx-font-smoothing:grayscale;
+      }
+      *{box-sizing:border-box}
+
+      /* === Layout === */
+      .mui-container-xs{
+          max-width: 444px;
+          margin: 0 auto;
+          padding: 16px;
+      }
+      .stack{display:flex;flex-direction:column;gap:12px}
+
+      /* === Card === */
+      .mui-card{
+          background: var(--mui-paper);
+          border: 1px solid var(--mui-divider);
+          border-radius: var(--mui-radius-lg);
+          box-shadow: var(--mui-shadow-1);
+      }
+      .mui-card-content{padding: 14px 16px}
+
+      /* === Typography === */
+      .mui-h6{font-size: 1.0rem; font-weight: 700; margin: 0}
+      .mui-subtitle1{font-size: .95rem; font-weight: 700; margin: 0}
+      .mui-body2{font-size: .85rem; color: var(--mui-text-secondary)}
+      .mui-caption{font-size: .74rem; color: var(--mui-text-secondary)}
+
+      /* === Divider === */
+      .mui-divider{height:1px;background:var(--mui-divider);margin:8px 0}
+
+      /* === Buttons === */
+      .mui-btn{
+          -webkit-tap-highlight-color: transparent;
+          display:inline-flex;align-items:center;justify-content:center;
+          gap:8px;padding:10px 14px;border-radius:var(--mui-radius-md);
+          font-weight:600;border:1px solid transparent;cursor:pointer;
+          transition:filter .12s ease, background .12s ease, border-color .12s ease;
+          width: 100%;
+      }
+      .mui-btn:disabled{opacity:.6;cursor:not-allowed}
+
+      .mui-btn-contained-primary{
+          background: var(--mui-primary);
+          color: var(--mui-primary-contrast);
+      }
+      .mui-btn-contained-primary:hover{background: var(--mui-primary-hover)}
+
+      .mui-btn-contained-error{
+          background: var(--mui-error);
+          color: var(--mui-error-contrast);
+      }
+      .mui-btn-contained-error:hover{background: var(--mui-error-hover)}
+
+      /* === Toggle Button Group (exclusive) === */
+      .mui-toggle-group{
+          display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;
+      }
+      .mui-toggle{
+          padding:10px 0;border-radius:var(--mui-radius-md);
+          border:1px solid var(--mui-divider);background:var(--mui-paper);cursor:pointer;
+          font-weight:700;color:var(--mui-text-primary);
+          transition: border-color .12s ease, background .12s ease, color .12s ease;
+      }
+      .mui-toggle.active{border-color:#90caf9;background:#e3f2fd;color:#0b5ebf}
+
+      /* === TextField (outlined) === */
+      .mui-textfield{
+          position:relative;display:flex;align-items:center;width:100%;
+          background:var(--mui-input-bg); border:1px solid var(--mui-input-bd);
+          border-radius:var(--mui-radius-md); padding:8px 12px;
+      }
+      .mui-textfield input{
+          width:100%;border:0;outline:0;background:transparent;
+          color:var(--mui-text-primary);font:inherit;font-size:15px;
+      }
+      .mui-textfield input::-webkit-outer-spin-button,
+      .mui-textfield input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+      .mui-textfield input[type=number]{-moz-appearance:textfield}
+      .mui-textfield:focus-within{border-color: var(--mui-input-focus); box-shadow: 0 0 0 2px rgba(25,118,210,.12)}
+
+      /* === Switch === */
+      .mui-switch{
+          display:flex;align-items:center;gap:10px
+      }
+      .mui-switch-track{
+          width: 48px; height: 28px; border-radius: 999px; background: #c9ccd1;
+          position:relative; cursor:pointer; transition: background .14s ease;
+      }
+      .mui-switch-track.on{ background: #66bb6a }
+      .mui-switch-knob{
+          position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%;
+          background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.25); transition:left .14s ease;
+      }
+      .mui-switch-track.on .mui-switch-knob{ left: 23px }
+
+      /* === Status pill === */
+      .mui-pill{
+          display:inline-flex;align-items:center;gap:8px;
+          padding:6px 10px; border-radius:999px; font-weight:700; font-size:.85rem;
+          border:1px solid transparent;
+      }
+      .pill-idle{ background:#f1f3f4; color:var(--mui-text-secondary); border-color:#e0e0e0 }
+      .pill-loading{ background:#fff3e0; color:#8a5a00; border-color:#ffe0b2 }
+      .pill-success{ background:#e8f5e9; color:#1b5e20; border-color:#c8e6c9 }
+      .pill-error{ background:#ffebee; color:#8b1c1c; border-color:#ffcdd2 }
+
+      /* === Code box === */
+      pre{
+          margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+          font-size:13.5px;line-height:1.5;white-space:pre-wrap;overflow:auto;
+          background:#0b0c0d;color:#e6e8eb;border:1px solid #1a1b1e;border-radius:var(--mui-radius-md);
+          padding:12px;
+      }
+
+      /* === Helpers === */
+      .row{display:flex;align-items:center;gap:10px}
+      .space-between{justify-content:space-between}
+      .minw-84{min-width:84px}
+      .num{font-variant-numeric: tabular-nums}
+      .status{
+          font-weight:800;font-size:1.1rem;
+      }
+      .status.muted{color:var(--mui-text-secondary)}
+      .status.ok{color:var(--mui-success)}
+      .status.err{color:var(--mui-error)}
+      button, input { font: inherit }
+  </style>
+</head>
+<body>
+<main class="mui-container-xs">
+  <div class="stack">
+    <!-- Header & Status -->
+    <section class="mui-card">
+      <div class="mui-card-content">
+        <div class="row space-between" style="margin-bottom:8px">
+          <h2 class="mui-subtitle1">HTTP Demo</h2>
+          <div id="pill" class="mui-pill pill-idle" aria-live="polite">
+            <span id="pillIcon">⬤</span>
+            <span id="pillText">Idle</span>
+          </div>
+        </div>
+
+        <div class="row" style="margin-bottom:8px">
+          <div class="mui-body2 minw-84">Expected</div>
+          <div class="mui-toggle-group" id="toggles">
+            <button class="mui-toggle active" data-status="200">200</button>
+            <button class="mui-toggle" data-status="400">400</button>
+            <button class="mui-toggle" data-status="404">404</button>
+            <button class="mui-toggle" data-status="500">500</button>
+          </div>
+        </div>
+
+        <div class="row" style="margin-bottom:8px">
+          <div class="mui-body2 minw-84">Delay (ms)</div>
+          <label class="mui-textfield">
+            <input id="delay" type="number" min="0" inputmode="numeric" value="600" />
+          </label>
+        </div>
+
+        <div class="row space-between">
+          <div class="mui-switch">
+            <span class="mui-body2">Debounce</span>
+            <div id="sw" class="mui-switch-track" role="switch" aria-checked="false" tabindex="0">
+              <div class="mui-switch-knob"></div>
+            </div>
+          </div>
+          <div id="debCfg" class="row" style="display:none">
+            <label class="mui-textfield" style="width:110px">
+              <input id="debMs" type="number" min="0" value="350" />
+            </label>
+            <span class="mui-body2">ms</span>
+          </div>
+        </div>
+
+        <div id="debRow" class="row" style="margin-top:8px;display:none">
+          <label class="mui-textfield">
+            <input id="debInput" placeholder="Type to fire debounced requests…" />
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <section class="mui-card">
+      <div class="mui-card-content row" style="gap:8px">
+        <button id="sendBtn" class="mui-btn mui-btn-contained-primary">Send Request</button>
+        <button id="abortBtn" class="mui-btn mui-btn-contained-error" style="display:none">Abort Request</button>
+      </div>
+    </section>
+
+    <!-- Status -->
+    <section class="mui-card">
+      <div class="mui-card-content row space-between">
+        <div class="mui-subtitle1">Status</div>
+        <div id="status" class="status num muted">— — —</div>
+      </div>
+    </section>
+
+    <!-- Body -->
+    <section class="mui-card">
+      <div class="mui-card-content">
+        <div class="mui-subtitle1" style="margin-bottom:8px">Response Body</div>
+        <pre id="body">No response yet.</pre>
+      </div>
+    </section>
+
+    <div class="mui-caption" style="text-align:center;padding:4px 0">
+      MUI-like styling, no external scripts. Mocked responses 200 / 400 / 404 / 500. Abort supported.
+    </div>
+  </div>
+</main>
+
+<script>
+  // --- Mock HTTP (no network) ---
+  function mockRequest({ status, delayMs, signal, payload }){
+    const controller = new AbortController();
+    const linkAbort = () => controller.abort();
+    if (signal) signal.addEventListener('abort', linkAbort, { once: true });
+
+    return new Promise((resolve, reject) => {
+      const t = setTimeout(() => {
+        if (controller.signal.aborted || (signal && signal.aborted)){
+          reject(Object.assign(new DOMException('Aborted','AbortError'), { status: 0 }));
+          return;
+        }
+        const ok = status >= 200 && status < 300;
+        const body = ok
+          ? { message: 'Mock OK', echo: payload ?? null, at: new Date().toISOString() }
+          : { error: 'Mock Error', code: status, echo: payload ?? null, at: new Date().toISOString() };
+        const res = { ok, status, body };
+        ok ? resolve(res) : reject(res);
+      }, Math.max(0, delayMs));
+
+      controller.signal.addEventListener('abort', () => {
+        clearTimeout(t);
+        reject(Object.assign(new DOMException('Aborted','AbortError'), { status: 0 }));
+      }, { once: true });
+    });
+  }
+
+  // --- Debounce ---
+  function debounce(fn, ms){
+    let id;
+    return (...args) => {
+      clearTimeout(id);
+      id = setTimeout(() => fn(...args), ms);
+    };
+  }
+
+  // --- Elements ---
+  const toggles = document.getElementById('toggles');
+  const delayEl = document.getElementById('delay');
+  const pill = document.getElementById('pill');
+  const pillText = document.getElementById('pillText');
+  const statusEl = document.getElementById('status');
+  const bodyEl = document.getElementById('body');
+  const sendBtn = document.getElementById('sendBtn');
+  const abortBtn = document.getElementById('abortBtn');
+
+  const sw = document.getElementById('sw');
+  const debCfg = document.getElementById('debCfg');
+  const debRow = document.getElementById('debRow');
+  const debMsEl = document.getElementById('debMs');
+  const debInput = document.getElementById('debInput');
+
+  // --- State ---
+  let expected = 200;
+  let ctrl = null;
+  let debounceOn = false;
+
+  // --- UI helpers ---
+  function setPill(state){
+    pill.className = 'mui-pill ' + (
+      state === 'loading' ? 'pill-loading' :
+        state === 'success' ? 'pill-success' :
+          state === 'error' ? 'pill-error' : 'pill-idle'
+    );
+    pillText.textContent = (
+      state === 'loading' ? 'Loading…' :
+        state === 'success' ? 'Success' :
+          state === 'error' ? 'Failed' : 'Idle'
+    );
+  }
+  function setStatus(n){
+    if (n == null){
+      statusEl.textContent = '— — —';
+      statusEl.className = 'status num muted';
+    } else {
+      statusEl.textContent = String(n);
+      statusEl.className = 'status num ' + (n >= 200 && n < 300 ? 'ok' : 'err');
+    }
+  }
+  function setBody(text){ bodyEl.textContent = text; }
+  function toggleActionButtons(loading){
+    sendBtn.style.display = loading ? 'none' : '';
+    abortBtn.style.display = loading ? '' : 'none';
+  }
+
+  // --- Actions ---
+  function beginRequest(payload){
+    if (ctrl) ctrl.abort();
+    ctrl = new AbortController();
+
+    setPill('loading');
+    setStatus(null);
+    setBody('…');
+    toggleActionButtons(true);
+
+    mockRequest({
+      status: expected,
+      delayMs: Math.max(0, Number(delayEl.value || 0)),
+      signal: ctrl.signal,
+      payload
+    })
+      .then(res => {
+        setStatus(res.status);
+        setBody(JSON.stringify(res.body, null, 2));
+        setPill('success');
+      })
+      .catch(err => {
+        if (err && err.name === 'AbortError'){
+          setPill('idle'); setStatus(null); setBody('Aborted.');
+          return;
+        }
+        const st = typeof err?.status === 'number' ? err.status : expected;
+        setStatus(st);
+        setBody(JSON.stringify(err?.body ?? { error:'Unknown error' }, null, 2));
+        setPill('error');
+      })
+      .finally(()=>{
+        ctrl = null;
+        toggleActionButtons(false);
+      });
+  }
+
+  // --- Event bindings ---
+  toggles.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button.mui-toggle');
+    if (!btn) return;
+    toggles.querySelectorAll('.mui-toggle').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    expected = Number(btn.dataset.status);
+  });
+
+  sendBtn.addEventListener('click', ()=>beginRequest());
+  abortBtn.addEventListener('click', ()=>ctrl && ctrl.abort());
+
+  // Switch click + keyboard
+  function toggleSwitch(){
+    debounceOn = !debounceOn;
+    sw.classList.toggle('on', debounceOn);
+    sw.setAttribute('aria-checked', String(debounceOn));
+    debCfg.style.display = debounceOn ? '' : 'none';
+    debRow.style.display = debounceOn ? '' : 'none';
+  }
+  sw.addEventListener('click', toggleSwitch);
+  sw.addEventListener('keydown', (e)=>{
+    if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggleSwitch(); }
+  });
+
+  // Debounced input
+  let debouncedHandler = debounce(()=>{
+    if (!debounceOn) return;
+    const q = debInput.value.trim();
+    if (!q) return;
+    beginRequest({ q });
+  }, Number(debMsEl.value || 350));
+
+  debInput.addEventListener('input', ()=>debouncedHandler());
+  debMsEl.addEventListener('input', ()=>{
+    debouncedHandler = debounce(()=>{
+      if (!debounceOn) return;
+      const q = debInput.value.trim();
+      if (!q) return;
+      beginRequest({ q });
+    }, Number(debMsEl.value || 350));
+  });
+
+  // Initial UI
+  setPill('idle');
+  setStatus(null);
+  setBody('No response yet.');
+</script>
+</body>
+</html>
