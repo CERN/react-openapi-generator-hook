@@ -15,6 +15,14 @@ import { ArrowRightCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import catppuccin from 'shiki/themes/catppuccin-frappe.mjs'
 import rose from 'shiki/themes/rose-pine-moon.mjs'
 import red from 'shiki/themes/red.mjs'
+import { Snippet } from '@heroui/snippet'
+
+const colorMap: Record<number, 'danger' | 'primary' | 'warning' | 'default' | 'secondary' | 'success' | undefined> = {
+  200: 'primary',
+  400: 'warning',
+  404: 'warning',
+  500: 'danger'
+}
 
 interface RequestStateVisualizerProps {
   loading: boolean
@@ -25,7 +33,14 @@ interface RequestStateVisualizerProps {
   abort: () => void
 }
 
-export const RequestStateVisualizer = ({ loading, data, error, response, fetch, abort }: RequestStateVisualizerProps) => {
+export const RequestStateVisualizer = ({
+                                         loading,
+                                         data,
+                                         error,
+                                         response,
+                                         fetch,
+                                         abort
+                                       }: RequestStateVisualizerProps) => {
 
   const [json, setJson] = useState(<></>)
   const [delayMs, setDelayMs] = useState(1500)
@@ -41,7 +56,7 @@ export const RequestStateVisualizer = ({ loading, data, error, response, fetch, 
         })
       }
       if (error) {
-        if (Number(error.response?.status) === 404) {
+        if (Number(error.response?.status) === 404 || error.status === 400) {
           setDataJson(error.response?.data, rose, warning)
         } else {
           setDataJson(error.response?.data, red, errorColor)
@@ -85,9 +100,9 @@ export const RequestStateVisualizer = ({ loading, data, error, response, fetch, 
   const disabled = {
     original: '#000000',
     border: '#dfdfdf',
-    from: '#ededed',
-    via: '#ececec',
-    to: '#ededed'
+    from: '#f4f4f5',
+    via: '#f6f6f6',
+    to: '#ffffff'
   }
 
 
@@ -99,6 +114,7 @@ export const RequestStateVisualizer = ({ loading, data, error, response, fetch, 
             className="bg-gradient-to-tr from-[var(--from)] via-[var(--via)] to-[var(--to)] rounded-2xl"
             style={
               {
+                color: color === disabled ? '#c8c8c8' : 'inherit',
                 '--from': color.from,
                 '--via': color.via ?? color.from,
                 '--to': color.to,
@@ -126,7 +142,7 @@ export const RequestStateVisualizer = ({ loading, data, error, response, fetch, 
                 padding: 0,
                 backgroundColor: 'rgba(255, 255, 255, 0.2)',
                 opacity: .75,
-                color: error ? error.status === 404 ? '#F6C177' : '#CD8D8DFF' : '#A6D189'
+                color: error ? error.status === 404 || error.status === 400 ? '#F6C177' : '#CD8D8DFF' : '#A6D189'
               }}>
               {error ? error.status : response?.status}
             </Code>
@@ -135,6 +151,12 @@ export const RequestStateVisualizer = ({ loading, data, error, response, fetch, 
       }
     )
   }
+
+  useState(() => {
+    if (data) {
+      JSON.stringify(data, null, 2).replaceAll(' ', ' ').split('\n').forEach(d => console.log(d))
+    }
+  })
 
   const onPress = () => {
     if (!loading) {
@@ -192,10 +214,17 @@ export const RequestStateVisualizer = ({ loading, data, error, response, fetch, 
             <Skeleton isLoaded={!loading} style={{ borderRadius: '8px' }}>
             {
               data ?
-                <Tooltip content={<Code>{JSON.stringify(data, null, 2)}</Code>}>
+                <Tooltip placement="right" classNames={{ base: "p-0 rounded-none shadow-none", content: "p-0" }} content={
+                  <Snippet hideCopyButton symbol="" color="primary" style={{fontSize: '12px'}} >
+                    {
+                      JSON.stringify(data, null, 2).split('\n')
+                        .map(l => <span>{l.replace('  "', '.."')}</span>)
+                    }
+                  </Snippet>
+                }>
                   <Code style={{ fontSize: '12px' }} color="primary">{`{...}`}</Code>
                 </Tooltip> :
-                <Code style={{ fontSize: '12px' }}>undef</Code>
+                <Code style={{ fontSize: '12px', color: '#a8a8a8' }}>undef</Code>
             }
             </Skeleton>
           </span>
@@ -209,20 +238,41 @@ export const RequestStateVisualizer = ({ loading, data, error, response, fetch, 
             >
               {
                 !loading && error && error.status &&
-                <Code color={error.status === 404 ? 'warning' : 'danger'}
-                      style={{ fontSize: '12px', width: '52px', textAlign: 'center' }}>{error?.status}</Code>
+                <Tooltip
+                  classNames={{ base: "p-0 rounded-none shadow-none", content: "p-0" }}
+                  placement="right"
+                  content={
+                  <Snippet
+                    hideCopyButton
+                    symbol=""
+                    color={colorMap[error.status]}
+                    style={{margin: 0, fontSize: '12px'}}
+                  >
+                    <span>{error.code}</span>
+                    <span>{error.message}</span>
+                  </Snippet>
+                }>
+                  <Code color={colorMap[error.status]}
+                        style={{ fontSize: '12px', width: '52px', textAlign: 'center' }}>{error?.status}</Code>
+                </Tooltip>
               }
               {
                 !loading && error && error.code === 'ERR_CANCELED' &&
-
-                <Code
-                  color="danger"
-                  style={{ fontSize: '12px', width: '52px', textAlign: 'center' }}>
-                  canc
-                </Code>
+                <Tooltip classNames={{ base: "p-0 rounded-none shadow-none", content: "p-0" }}
+                         placement="right"
+                         content={
+                  <Snippet hideCopyButton style={{fontSize: '12px'}} symbol=""
+                           color="danger"><span>{error.code}</span><span>Request has been canceled</span></Snippet>
+                }>
+                  <Code
+                    color="danger"
+                    style={{ fontSize: '12px', width: '52px', textAlign: 'center' }}>
+                    CANC
+                  </Code>
+                </Tooltip>
               }
               {
-                !loading && !error && <Code style={{ fontSize: '12px' }}>undef</Code>
+                !loading && !error && <Code style={{ fontSize: '12px', color: '#a8a8a8' }}>undef</Code>
               }
             </Skeleton>
           </span>
@@ -252,7 +302,7 @@ export const RequestStateVisualizer = ({ loading, data, error, response, fetch, 
           </small>
           <Tabs
             isDisabled={loading}
-            color="primary"
+            color={colorMap[Number(status)]}
             aria-label="Tabs radius"
             radius="full"
             selectedKey={status}
