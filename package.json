@@ -1,6 +1,6 @@
 {
   "name": "react-openapi-generator-hook",
-  "version": "0.3.3-experimental",
+  "version": "0.3.4-experimental",
   "main": "dist/react-openapi-hook.umd.js",
   "module": "dist/react-openapi-hook.es.js",
   "types": "dist/index.d.ts",
@@ -32,7 +32,7 @@
     "@typescript-eslint/parser": "^8.41.0",
     "@vitejs/plugin-react": "^5.0.1",
     "@vitest/coverage-v8": "^3.2.4",
-    "axios": "^1.8.0",
+    "axios": "^1.18.0",
     "eslint": "^9.34.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^10.1.8",
